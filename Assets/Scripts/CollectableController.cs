@@ -23,7 +23,6 @@ public class CollectableController : MonoBehaviour
 
            
             transform.position = Vector3.Lerp(transform.position,  Camera.main.ScreenToWorldPoint(new Vector3(Screen.width, Screen.height,20)), (time/duration)*curve.Evaluate(time));
-            Debug.Log((time/duration)*curve.Evaluate(time));
             //transform.localScale = Vector3.Lerp(transform.position,  Vector3.zero, (time/duration)*curve.Evaluate(time));
             
 
