@@ -12,25 +12,27 @@ public class PlayerController : MonoBehaviour
     private Animator animator;
     [SerializeField] private LayerMask layermask;
     [SerializeField] private Transform rayPoint;
-    public event Action WinEvent;
-    private CanvasController canvasController;
+    private bool dummyOnce=true;
+    
 
-    private void Awake()
+    private void Start()
     {
         tempSpeed = speed;
         animator = GetComponent<Animator>();
         playerController = this;
-        canvasController = FindObjectOfType<CanvasController>();
-        canvasController.nextLevel += NextLevel;
-        //speed += PlayerPrefs.GetInt("PlayerLevel") * .1f;
+        speed += PlayerPrefs.GetInt("PlayerLevel") * .02f;
+        GameManager.instance.nextLevel += NextLevel;
+      
     }
 
     private void Update()
     {
         transform.Translate(Vector3.forward * Time.deltaTime * speed);
         RaycastHit hit;
-        if (!Physics.Raycast(rayPoint.position, Vector3.down, out hit, 2f, layermask))
+        if (!Physics.Raycast(rayPoint.position, Vector3.down, out hit, 2f, layermask)&&dummyOnce)
         {
+            dummyOnce = false;
+            GameManager.instance.InvokeStatusAction(GameManager.gameStatusEvents.loseLevel);
             playerController.enabled = false;
             doRagdoll();
         }
@@ -58,7 +60,7 @@ public class PlayerController : MonoBehaviour
             {
                 animator.SetTrigger("Dance");
                 PlayerPrefs.SetInt("PlayerLevel", PlayerPrefs.GetInt("PlayerLevel") + 1);
-                WinEvent?.Invoke();
+                GameManager.instance.InvokeStatusAction(GameManager.gameStatusEvents.winLevel);
             });
         }
     }
@@ -71,6 +73,7 @@ public class PlayerController : MonoBehaviour
     {
         yield return new WaitForSeconds(2f);
         speed = tempSpeed;
+        speed += PlayerPrefs.GetInt("PlayerLevel") * .02f;
         animator.SetTrigger("Run");
     }
 }

@@ -9,18 +9,15 @@ public class CameraController : MonoBehaviour
 {
     [SerializeField] private CinemachineVirtualCamera followCam;
     [SerializeField] private CinemachineFreeLook Rotatecam;
-    private PlayerController playerController;
     private bool canRotate;
     private float RotateVal;
-    private CanvasController canvasController;
 
-    private void Awake()
+    private void Start()
     {
-        canvasController = FindObjectOfType<CanvasController>();
-        canvasController.nextLevel += InGame;
+        GameManager.instance.nextLevel += InGame;
+        GameManager.instance.winLevel += InFinish;
         InGame();
-        playerController = FindObjectOfType<PlayerController>();
-        playerController.WinEvent += InFinish;
+       
     }
 
     void InGame()
@@ -33,6 +30,7 @@ public class CameraController : MonoBehaviour
     public void InFinish()
     {
         //DOTween.To(()=> RotateVal, x=> RotateVal = x, 360, 15f).SetEase(Ease.Linear);
+        Debug.Log("InFinishcam ");
         canRotate = true;
         followCam.Priority = 8;
     }

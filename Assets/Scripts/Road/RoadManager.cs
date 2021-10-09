@@ -1,26 +1,24 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class RoadManager : MonoBehaviour
 {
     [SerializeField] private float moveSpeed;
-    [SerializeField] private GameObject roadElement,StartPlatform;
+    [SerializeField] private GameObject roadElement, StartPlatform;
     [SerializeField] private Transform lastCube, currentCube;
     [SerializeField] private AnimationCurve scaleCurve;
     private RoadMovement roadMovemnet;
     private int blockCount, howManyBlocks;
     [SerializeField] private List<Material> blockMaterials = new List<Material>();
-    private CanvasController canvasController;
     bool canTouch = true;
 
-    public event Action fitPerfect, justFit;
 
     private void Start()
     {
-        canvasController = FindObjectOfType<CanvasController>();
         Init();
     }
 
@@ -30,8 +28,8 @@ public class RoadManager : MonoBehaviour
         blockCount = 0;
         howManyBlocks = PlayerPrefs.GetInt("PlayerLevel") + 2;
         moveSpeed += PlayerPrefs.GetInt("PlayerLevel") * .1f;
-        
-        canvasController.nextLevel += Reset;
+
+        GameManager.instance.nextLevel += Reset;
     }
 
 
@@ -70,7 +68,7 @@ public class RoadManager : MonoBehaviour
         roadMovemnet.direction = direction;
 
         lastCube.name = this.transform.childCount.ToString();
-        lastCube.GetComponent<Renderer>().material = blockMaterials[transform.childCount % (blockMaterials.Count-1)];
+        lastCube.GetComponent<Renderer>().material = blockMaterials[transform.childCount % (blockMaterials.Count - 1)];
     }
 
     bool splitLastRoad()
@@ -83,7 +81,12 @@ public class RoadManager : MonoBehaviour
             roadElement = lastCube.gameObject;
             currentCube = lastCube;
 
-            fitPerfect?.Invoke();
+            Material mat = lastCube.GetComponent<Renderer>().material;
+            Color c = mat.color;
+            Sequence seq = DOTween.Sequence();
+            seq.Join(mat.DOColor(Color.white, 0.2f))
+                .Append(mat.DOColor(c, 0.2f)).SetLoops(2);
+            GameManager.instance.InvokeGameAction(GameManager.gameEvents.fitPerfect);
             return true;
         }
 
@@ -93,11 +96,10 @@ public class RoadManager : MonoBehaviour
         {
             StartCoroutine(scaleAnimation(1f, lastCube));
             lastCube = null;
-            Debug.Log("Lose");
             return false;
         }
 
-        justFit?.Invoke();
+        GameManager.instance.InvokeGameAction(GameManager.gameEvents.justFit);
         float newPosition = lastCube.position.x + xPositionDifference / 2f;
         float fallingBlockSize = lastCube.transform.localScale.x - newSize;
 
@@ -126,7 +128,8 @@ public class RoadManager : MonoBehaviour
         Transform fallingRoad = GameObject.CreatePrimitive(PrimitiveType.Cube).transform;
         fallingRoad.localScale = new Vector3(scale, lastCube.localScale.y, lastCube.localScale.z);
         fallingRoad.position = new Vector3(pos, lastCube.position.y, lastCube.position.z);
-        fallingRoad.GetComponent<Renderer>().material = blockMaterials[transform.childCount % (blockMaterials.Count-1)];
+        fallingRoad.GetComponent<Renderer>().material =
+            blockMaterials[transform.childCount % (blockMaterials.Count - 1)];
 
         StartCoroutine(moveRoadToCenter(1f, lastCube));
 
@@ -172,28 +175,32 @@ public class RoadManager : MonoBehaviour
 
     void Reset()
     {
-        canvasController.nextLevel -= Reset;
+        GameManager.instance.nextLevel -= Reset;
         PreparingNextLevel();
         StartCoroutine(startNextLevel());
-
     }
 
     IEnumerator startNextLevel()
-    {   
+    {
         yield return new WaitForSeconds(2f);
-    
+
         Init();
         canTouch = true;
     }
+
     void PreparingNextLevel()
     {
         int childCount = transform.childCount;
-        for (int i = 0; i <childCount; i++)
-        { 
+        for (int i = 0; i < childCount; i++)
+        {
             transform.GetChild(0).parent = null;
         }
-        Instantiate(StartPlatform, new Vector3(0, StartPlatform.transform.position.y, lastCube.position.z + 3f), Quaternion.identity);
-        Transform tempLastPlatform=Instantiate(StartPlatform, new Vector3(0, StartPlatform.transform.position.y, lastCube.position.z + 4f), Quaternion.identity).transform;
+
+        Instantiate(StartPlatform, new Vector3(0, StartPlatform.transform.position.y, lastCube.position.z + 3f),
+            Quaternion.identity);
+        Transform tempLastPlatform = Instantiate(StartPlatform,
+                new Vector3(0, StartPlatform.transform.position.y, lastCube.position.z + 4f), Quaternion.identity)
+            .transform;
         roadElement = tempLastPlatform.gameObject;
         lastCube = tempLastPlatform;
         currentCube = tempLastPlatform;

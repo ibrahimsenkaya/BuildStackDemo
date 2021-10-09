@@ -8,18 +8,16 @@ public class AudioController : MonoBehaviour
     private RoadManager roadmanager;
     private AudioSource source;
     private float pitchValue,tempPitchValue;
-    private CanvasController canvasController;
     void Start()
     {
-        canvasController = FindObjectOfType<CanvasController>();
-        canvasController.nextLevel += Reset;
+        GameManager.instance.nextLevel += Reset;
         source = GetComponent<AudioSource>();
         pitchValue = source.pitch;
         tempPitchValue = pitchValue;
         roadmanager = FindObjectOfType<RoadManager>();
         
-        roadmanager.fitPerfect += FitPerfect;
-        roadmanager.justFit += JustFit;
+        GameManager.instance.fitPerfect += FitPerfect;
+        GameManager.instance.justFit += JustFit;
     }
 
     

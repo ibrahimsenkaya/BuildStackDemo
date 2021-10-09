@@ -1,11 +1,19 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 
 public class CollectableController : MonoBehaviour
 {
     [SerializeField] private ParticleSystem particle;
     [SerializeField] private AnimationCurve curve;
+
+    private void Start()
+    {
+        transform.DORotate(new Vector3(0, 180, 0), 1f).SetLoops(-1, LoopType.Incremental).SetLink(this.gameObject).SetEase(Ease.Linear);
+    }
+
     public void Collect()
     {
         StartCoroutine(moveToPosition(1f));
